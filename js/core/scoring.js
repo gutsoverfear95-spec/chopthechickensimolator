@@ -116,7 +116,17 @@ export class ScoringSystem {
             success = true;
         }
 
+        // Lực nằm trong ngưỡng cho phép nhưng chưa vào khoảng đều tay:
+        // miếng vẫn đứt, chỉ là mép cắt không đẹp.
+        let uneven = false;
+        if (success && force >= 0.2 && force <= 0.9 && (force < 0.35 || force > 0.8)) {
+            uneven = true;
+            score -= 8;
+            message += ' (Tay chưa đều — lực hơi ' + (force < 0.35 ? 'nhẹ' : 'nặng') + '.)';
+        }
+
         return {
+            uneven,
             type, message, score, success,
             distanceMm,
             angleDiffDeg,

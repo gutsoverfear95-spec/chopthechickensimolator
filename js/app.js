@@ -26,7 +26,7 @@ class App {
         this.knifeControl = new KnifeControl(this.sceneManager, this.chickenMesh, this.scoringSystem);
 
         this.m1Module = new M1PrepModule();
-        this.m2Module = new M2ChopModule(this.anatomyData, this.chickenMesh);
+        this.m2Module = new M2ChopModule(this.anatomyData, this.chickenMesh, this.sceneManager);
         this.m3Module = new M3PlatingModule(this.sceneManager, this.chickenMesh);
         this.uiAnalysis = new UIAnalysis(this.anatomyData);
 

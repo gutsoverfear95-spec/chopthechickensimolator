@@ -21,19 +21,33 @@ python3 -m http.server 8000
 | **M2** | `js/render/knife_control.js` + `js/core/scoring.js` | Pha lóc theo 7 bước, chấm điểm từng nhát dao |
 | **M3** | `js/modules/m3_plating.js` | Kéo thả xếp đĩa, chấm bố cục và tính đối xứng |
 
-## Điều khiển ở M2
+## Điều khiển ở M2 — kéo vẽ đường chặt
 
-| Thao tác | Tác dụng |
+**Bấm giữ trên thân gà rồi kéo một đường thẳng, thả tay là bổ.** Một cử chỉ đặt xong cả ba thông số:
+
+| Thành phần của cử chỉ | Quyết định |
 |---|---|
-| Rê chuột | Đưa dao trên thân gà |
-| Giữ & thả chuột trái | Lấy đà rồi bổ (giữ càng lâu lực càng mạnh) |
-| Lăn chuột | Xoay hướng lưỡi dao |
-| `Q` / `E` | Nghiêng lưỡi dao |
-| `R` | Đưa dao về vuông góc thớt |
+| Điểm bấm xuống | Vị trí nhát dao |
+| Hướng kéo | Hướng lưỡi dao |
+| Độ dài kéo | Lực bổ (thanh lực hiện ngay dưới màn hình) |
+
+| Phím / chuột | Tác dụng |
+|---|---|
+| `Q` / `E` | Nghiêng lưỡi dao (mặc định vuông góc thớt) |
+| `R` | Đưa lưỡi dao về vuông góc thớt |
 | Kéo chuột phải | Xoay camera |
 
-Đường chỉ dao đổi màu theo độ chính xác **trước khi** bổ: xanh = ngọt khớp,
-vàng = sượt khớp, đỏ = sẽ phạm xương. Vòng tròn xanh trên thân gà là khớp của bước hiện tại.
+Trong lúc kéo, đường chỉ dao và mặt phẳng cắt **đổi màu theo độ chính xác**: xanh = ngọt
+khớp, vàng = sượt khớp, đỏ = sẽ phạm xương. Người chơi chỉnh cho tới khi thấy xanh rồi mới
+thả tay — đó là vòng phản hồi chính của bài tập.
+
+Vòng tròn xanh trên thân gà là khớp của bước hiện tại; vạch dọc trong vòng tròn nằm đúng
+trong mặt phẳng cắt lý tưởng, kéo dao song song với vạch đó là đúng hướng.
+
+Camera **tự lượn tới khớp** mỗi khi sang bước mới, đứng lệch sang phía trục lưỡi dao để
+mặt phẳng cắt hiện ra ở dạng cạnh (nhìn thẳng vào mặt phẳng thì nó phủ kín màn hình và
+che mất con gà). Chạm vào chuột là tween huỷ ngay — không bao giờ giành quyền điều khiển
+với người chơi. Nút "Đưa camera về khớp" gọi lại khi cần.
 
 ## Kiến trúc
 
@@ -41,7 +55,7 @@ vàng = sượt khớp, đỏ = sẽ phạm xương. Vòng tròn xanh trên thâ
 js/
 ├── anatomy/chicken-anatomy.json   ← NGUỒN SỰ THẬT DUY NHẤT cho hình học
 ├── core/      state.js  scoring.js  audio.js
-├── render/    scene.js  chicken_mesh.js  knife_control.js
+├── render/    scene.js  materials.js  chicken_mesh.js  knife_control.js
 ├── modules/   m1_prep.js  m2_chop.js  m3_plating.js
 └── ui/        ui_analysis.js
 ```
@@ -90,3 +104,29 @@ Mặt phẳng thì vô hạn, nên có hai rào chắn:
 2. Thêm một entry vào `chopSequence` trong `js/core/state.js`, với `id` trùng key của khớp.
 
 Chỉ vậy. Chỉ báo tiến độ, marker khớp trên thân gà và bảng phân tích cuối lượt tự cập nhật.
+
+
+## Vì sao con gà không trông như nhựa
+
+Bốn thứ cộng lại, thiếu bất kỳ cái nào là hỏng:
+
+1. **Môi trường phản chiếu (IBL).** `scene.environment` lấy từ `RoomEnvironment` qua
+   `PMREMGenerator`. Không có nó thì mọi highlight chỉ là một đốm trắng phẳng — mắt người
+   đọc ra là nhựa ngay lập tức, dù chỉnh roughness thế nào.
+2. **Tone mapping.** `ACESFilmicToneMapping`, exposure 0.95. Không có thì vùng sáng bị cháy trắng.
+3. **`MeshPhysicalMaterial` với `sheen` + `clearcoat` mỏng.** sheen cho ánh mềm ở rìa —
+   đó chính là thứ phân biệt da với plastic. clearcoat 0.35 / clearcoatRoughness 0.55 là
+   lớp mỡ đọng trên mặt da gà luộc để nguội.
+4. **Texture procedural** (`js/render/materials.js`, vẽ bằng canvas, không tải ảnh ngoài):
+   loang lổ lớn + lỗ chân lông + nếp nhăn, dùng cho cả `map` lẫn `bumpMap`. Một màu phẳng
+   tuyệt đối thì không bao giờ ra da.
+
+Ngoài ra hình học được `deform()` đẩy từng đỉnh theo nhiễu fbm — thịt thật không bao giờ
+đối xứng tuyệt đối — và `taper()` thu nhỏ dần thân về phía đuôi.
+
+### Hai quy tắc khi chỉnh hình con gà
+
+- **Thân gà là MỘT khối trứng.** `uc` và `lung` phải trùm lên nhau thật sâu. Nếu để chúng
+  chỉ chạm nhau thì nhìn ra ngay hai khối chồng lên nhau chứ không phải một con gà.
+- **Màu các bộ phận phải gần như đồng nhất.** Chênh lệch sáng tối để cho ánh sáng lo.
+  Tô `uc` sáng hơn `lung` một chút thôi là ức lộ thành một mảng dán lên lưng.

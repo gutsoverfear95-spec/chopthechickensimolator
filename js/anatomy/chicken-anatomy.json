@@ -1,5 +1,5 @@
 {
-  "_comment": "Nguồn sự thật duy nhất cho hình học con gà. chicken_mesh.js dựng mesh từ đây, scoring.js chấm điểm từ đây. Đừng hard-code toạ độ ở nơi khác. Quy ước: 1 đơn vị 3D = 10mm. Toạ độ là LOCAL trong chickenMesh.group (mặt thớt ở y=0 khi gà chưa lật).",
+  "_comment": "Nguồn sự thật duy nhất cho hình học con gà. chicken_mesh.js dựng mesh từ đây, scoring.js chấm điểm từ đây. Đừng hard-code toạ độ ở nơi khác. Quy ước: 1 đơn vị 3D = 10mm. Toạ độ là LOCAL trong chickenMesh.group (mặt thớt ở y=0 khi gà chưa lật). mesh: geo (capsule|sphere|cylinder|cone), args, taper [trục, tỉ lệ đầu nhỏ, tỉ lệ đầu lớn], scale, pos, rot, tint, noise. Nguyên tắc dựng hình: thân gà là MỘT khối trứng — ức và lưng phải trùm lên nhau thật sâu, đừng để thành hai khối chồng lên nhau.",
   "unitMm": 10,
   "searchRadius": 5.0,
 
@@ -8,120 +8,232 @@
       "label": "Lưng",
       "mass": 220,
       "bone": true,
-      "mesh": { "geo": "capsule", "args": [2.2, 3.6], "pos": [0, 2.3, -0.3], "rot": [1.5708, 0, 0] }
+      "mesh": {
+        "geo": "sphere", "args": [2.5], "taper": ["z", 0.5, 1.0],
+        "scale": [0.96, 0.74, 1.3],
+        "pos": [0, 2.0, -0.3], "rot": [0, 0, 0],
+        "tint": "#d7a24a", "noise": 0.04
+      }
     },
     "uc": {
       "label": "Ức / Lườn",
       "mass": 400,
       "bone": false,
-      "mesh": { "geo": "capsule", "args": [1.8, 2.8], "pos": [0, 4.0, 0.4], "rot": [1.5708, 0, 0] }
+      "mesh": {
+        "geo": "sphere", "args": [2.0], "taper": ["z", 0.62, 1.0],
+        "scale": [0.9, 0.8, 1.08],
+        "pos": [0, 2.95, 0.55], "rot": [0, 0, 0],
+        "tint": "#ddaa54", "noise": 0.04
+      }
     },
     "co": {
       "label": "Cổ",
       "mass": 150,
       "bone": true,
       "detachWith": ["dau"],
-      "mesh": { "geo": "cylinder", "args": [0.55, 0.85, 3.0], "pos": [0, 5.8, 2.9], "rot": [0.628, 0, 0] }
+      "mesh": {
+        "geo": "cylinder", "args": [0.4, 0.74, 1.7],
+        "pos": [0, 4.58, 2.22], "rot": [0.82, 0, 0],
+        "tint": "#d9a44f", "noise": 0.05
+      }
     },
     "dau": {
       "label": "Đầu",
       "mass": 100,
       "bone": true,
-      "mesh": { "geo": "sphere", "args": [1.1], "pos": [0, 7.0, 3.75], "rot": [0, 0, 0] }
+      "detachWith": ["mao", "mo"],
+      "mesh": {
+        "geo": "sphere", "args": [0.72], "scale": [0.86, 1.0, 1.18],
+        "pos": [0, 5.35, 3.05], "rot": [0, 0, 0],
+        "tint": "#dcaa57", "noise": 0.05
+      }
+    },
+    "mao": {
+      "label": "Mào",
+      "mass": 5,
+      "bone": false,
+      "mesh": {
+        "geo": "sphere", "args": [0.34], "scale": [0.3, 1.0, 1.45],
+        "pos": [0, 5.95, 2.95], "rot": [0, 0, 0],
+        "tint": "#9d2f24", "noise": 0.16
+      }
+    },
+    "mo": {
+      "label": "Mỏ",
+      "mass": 3,
+      "bone": true,
+      "mesh": {
+        "geo": "cone", "args": [0.2, 0.62],
+        "pos": [0, 5.28, 3.78], "rot": [1.5708, 0, 0],
+        "tint": "#c99436", "noise": 0.02
+      }
     },
     "canh_trai": {
       "label": "Cánh trái",
       "mass": 120,
       "bone": true,
-      "mesh": { "geo": "capsule", "args": [0.75, 2.0], "pos": [-2.6, 3.8, 0.8], "rot": [0, 0, 0.785] }
+      "detachWith": ["canh_dau_trai"],
+      "mesh": {
+        "geo": "capsule", "args": [0.9, 1.3], "taper": ["y", 0.6, 1.0],
+        "scale": [0.34, 1.0, 0.9],
+        "pos": [-1.68, 2.95, 0.15], "rot": [1.46, 0, 0.07],
+        "tint": "#d8a54e", "noise": 0.06
+      }
+    },
+    "canh_dau_trai": {
+      "label": "Đầu cánh trái",
+      "mass": 25,
+      "bone": true,
+      "mesh": {
+        "geo": "capsule", "args": [0.5, 1.1], "taper": ["y", 0.35, 1.0],
+        "scale": [0.4, 1.0, 0.85],
+        "pos": [-1.48, 2.5, -1.5], "rot": [1.38, 0, 0.1],
+        "tint": "#d4a04a", "noise": 0.06
+      }
     },
     "canh_phai": {
       "label": "Cánh phải",
       "mass": 120,
       "bone": true,
-      "mesh": { "geo": "capsule", "args": [0.75, 2.0], "pos": [2.6, 3.8, 0.8], "rot": [0, 0, -0.785] }
+      "detachWith": ["canh_dau_phai"],
+      "mesh": {
+        "geo": "capsule", "args": [0.9, 1.3], "taper": ["y", 0.6, 1.0],
+        "scale": [0.34, 1.0, 0.9],
+        "pos": [1.68, 2.95, 0.15], "rot": [1.46, 0, -0.07],
+        "tint": "#d8a54e", "noise": 0.06
+      }
+    },
+    "canh_dau_phai": {
+      "label": "Đầu cánh phải",
+      "mass": 25,
+      "bone": true,
+      "mesh": {
+        "geo": "capsule", "args": [0.5, 1.1], "taper": ["y", 0.35, 1.0],
+        "scale": [0.4, 1.0, 0.85],
+        "pos": [1.48, 2.5, -1.5], "rot": [1.38, 0, -0.1],
+        "tint": "#d4a04a", "noise": 0.06
+      }
     },
     "dui_goc_tu_trai": {
       "label": "Đùi góc tư trái",
       "mass": 250,
       "bone": true,
-      "mesh": { "geo": "capsule", "args": [1.1, 2.2], "pos": [-2.4, 2.2, -1.6], "rot": [0.785, 0, 0.5] }
+      "detachWith": ["dui_toi_trai"],
+      "mesh": {
+        "geo": "sphere", "args": [1.25], "taper": ["z", 0.62, 1.0],
+        "scale": [0.78, 0.92, 1.22],
+        "pos": [-1.4, 1.55, -1.15], "rot": [0, 0.16, 0.08],
+        "tint": "#d29c46", "noise": 0.06
+      }
+    },
+    "dui_toi_trai": {
+      "label": "Đùi tỏi trái",
+      "mass": 110,
+      "bone": true,
+      "mesh": {
+        "geo": "capsule", "args": [0.52, 1.5], "taper": ["y", 0.36, 1.0],
+        "scale": [0.95, 1.0, 0.95],
+        "pos": [-0.95, 1.0, -2.6], "rot": [1.5, 0, -0.42],
+        "tint": "#d09a45", "noise": 0.06
+      }
     },
     "dui_goc_tu_phai": {
       "label": "Đùi góc tư phải",
       "mass": 250,
       "bone": true,
-      "mesh": { "geo": "capsule", "args": [1.1, 2.2], "pos": [2.4, 2.2, -1.6], "rot": [0.785, 0, -0.5] }
+      "detachWith": ["dui_toi_phai"],
+      "mesh": {
+        "geo": "sphere", "args": [1.25], "taper": ["z", 0.62, 1.0],
+        "scale": [0.78, 0.92, 1.22],
+        "pos": [1.4, 1.55, -1.15], "rot": [0, -0.16, -0.08],
+        "tint": "#d29c46", "noise": 0.06
+      }
+    },
+    "dui_toi_phai": {
+      "label": "Đùi tỏi phải",
+      "mass": 110,
+      "bone": true,
+      "mesh": {
+        "geo": "capsule", "args": [0.52, 1.5], "taper": ["y", 0.36, 1.0],
+        "scale": [0.95, 1.0, 0.95],
+        "pos": [0.95, 1.0, -2.6], "rot": [1.5, 0, 0.42],
+        "tint": "#d09a45", "noise": 0.06
+      }
     },
     "phao_cau": {
       "label": "Phao câu",
       "mass": 30,
       "bone": false,
-      "mesh": { "geo": "sphere", "args": [0.7], "pos": [0, 2.6, -2.6], "rot": [0, 0, 0] }
+      "mesh": {
+        "geo": "cone", "args": [0.72, 1.5],
+        "scale": [1.0, 1.0, 0.75],
+        "pos": [0, 2.35, -3.0], "rot": [-1.35, 0, 0],
+        "tint": "#e0b25f", "noise": 0.1
+      }
     }
   },
 
   "joints": {
     "khop_co": {
       "label": "Khớp cổ",
-      "partA": "uc",
-      "partB": "co",
-      "position": [0, 4.8, 2.2],
+      "partA": "uc", "partB": "co",
+      "position": [0, 4.1, 1.75],
       "normal": [0, 0, 1],
+      "capRadius": 0.5,
       "tolerance": 6,
       "difficulty": 1
     },
     "khop_vai_trai": {
       "label": "Khớp vai trái",
-      "partA": "uc",
-      "partB": "canh_trai",
-      "position": [-1.9, 3.9, 0.85],
+      "partA": "uc", "partB": "canh_trai",
+      "position": [-1.56, 3.05, 0.2],
       "normal": [1, 0, 0],
+      "capRadius": 0.6,
       "tolerance": 6,
       "difficulty": 2
     },
     "khop_vai_phai": {
       "label": "Khớp vai phải",
-      "partA": "uc",
-      "partB": "canh_phai",
-      "position": [1.9, 3.9, 0.85],
+      "partA": "uc", "partB": "canh_phai",
+      "position": [1.56, 3.05, 0.2],
       "normal": [1, 0, 0],
+      "capRadius": 0.6,
       "tolerance": 6,
       "difficulty": 2
     },
     "khop_hang_trai": {
       "label": "Khớp háng trái",
-      "partA": "lung",
-      "partB": "dui_goc_tu_trai",
-      "position": [-1.9, 2.3, -1.5],
+      "partA": "lung", "partB": "dui_goc_tu_trai",
+      "position": [-1.28, 1.7, -1.1],
       "normal": [1, 0, 0],
+      "capRadius": 0.95,
       "tolerance": 6,
       "difficulty": 3
     },
     "khop_hang_phai": {
       "label": "Khớp háng phải",
-      "partA": "lung",
-      "partB": "dui_goc_tu_phai",
-      "position": [1.9, 2.3, -1.5],
+      "partA": "lung", "partB": "dui_goc_tu_phai",
+      "position": [1.28, 1.7, -1.1],
       "normal": [1, 0, 0],
+      "capRadius": 0.95,
       "tolerance": 6,
       "difficulty": 3
     },
     "khop_uc_lung": {
-      "label": "Đường xương sườn",
-      "partA": "lung",
-      "partB": "uc",
-      "position": [-1.35, 3.3, 0.2],
-      "normal": [1, 0, 0],
+      "label": "Đường tách ức",
+      "partA": "lung", "partB": "uc",
+      "position": [0, 3.1, 0.35],
+      "normal": [0, 0, 1],
+      "capRadius": 1.7,
       "tolerance": 6,
       "difficulty": 4
     },
     "khop_phao_cau": {
       "label": "Phao câu",
-      "partA": "lung",
-      "partB": "phao_cau",
-      "position": [0, 2.5, -2.15],
+      "partA": "lung", "partB": "phao_cau",
+      "position": [0, 2.3, -2.55],
       "normal": [0, 0, 1],
+      "capRadius": 0.6,
       "tolerance": 5,
       "difficulty": 2
     }

@@ -417,3 +417,81 @@ input[type=range] {
     max-width: 100%;
     border-radius: 6px;
 }
+
+/* ---------- Thanh lực khi kéo vẽ đường chặt ---------- */
+#force-gauge {
+    position: absolute;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 280px;
+    text-align: center;
+    pointer-events: none;
+}
+
+.gauge-track {
+    position: relative;
+    height: 14px;
+    border-radius: 7px;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    overflow: hidden;
+}
+
+/* Khoảng "lực vừa tay" — 35% đến 80% */
+.gauge-zone {
+    position: absolute;
+    left: 35%;
+    width: 45%;
+    top: 0;
+    bottom: 0;
+    background: rgba(76, 175, 80, 0.28);
+    border-left: 1px solid rgba(76, 175, 80, 0.7);
+    border-right: 1px solid rgba(76, 175, 80, 0.7);
+}
+
+.gauge-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    background: #9e9e9e;
+    transition: background 0.12s;
+}
+
+.gauge-fill.weak { background: #78909c; }
+.gauge-fill.ok   { background: #ffc107; }
+.gauge-fill.good { background: #4caf50; }
+.gauge-fill.over { background: #f44336; }
+
+.gauge-label {
+    margin-top: 7px;
+    font-size: 13px;
+    font-weight: bold;
+    color: #f0e2d0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+}
+
+.hint-main {
+    color: #ffcc80;
+    margin-bottom: 8px;
+    max-width: 270px;
+    line-height: 1.5;
+}
+
+.btn-ghost {
+    margin-top: 12px;
+    background: transparent;
+    color: #ffb74d;
+    border: 1px solid #8a5a28;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.btn-ghost:hover {
+    background: rgba(255, 152, 0, 0.15);
+}

@@ -16,7 +16,7 @@ export class AppState {
             { id: 'khop_vai_phai',    name: 'Cánh Phải',     instruction: 'Bước 3/7 — Cắt rời cánh phải tại khớp vai.' },
             { id: 'khop_hang_trai',   name: 'Đùi Trái',      instruction: 'Bước 4/7 — Cắt đùi góc tư trái tại khớp háng. Bẻ ngửa khớp cho lộ ra trước.' },
             { id: 'khop_hang_phai',   name: 'Đùi Phải',      instruction: 'Bước 5/7 — Cắt đùi góc tư phải tại khớp háng.' },
-            { id: 'khop_uc_lung',     name: 'Tách Ức',       instruction: 'Bước 6/7 — Tách ức khỏi lưng: cắt dọc theo đường xương sườn, dao song song thân gà.' },
+            { id: 'khop_uc_lung',     name: 'Tách Ức',       instruction: 'Bước 6/7 — Tách ức khỏi lưng: chặt ngang thân, lưỡi dao nằm ngang trái–phải.' },
             { id: 'khop_phao_cau',    name: 'Phao Câu',      instruction: 'Bước 7/7 — Cắt rời phao câu ở cuối lưng.' }
         ];
         this.currentChopStepIndex = 0;
