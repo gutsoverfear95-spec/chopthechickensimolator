@@ -1,151 +1,169 @@
 import * as THREE from 'three';
 
+/**
+ * Con gà được dựng HOÀN TOÀN từ js/anatomy/chicken-anatomy.json.
+ * Không hard-code toạ độ ở đây — nếu cần chỉnh hình, chỉnh trong JSON.
+ *
+ * Hai hệ toạ độ:
+ *  - `group`  : con gà còn nguyên. Có thể bị lật (rotation.z = PI). Mọi toạ độ
+ *               khớp trong JSON là LOCAL trong group này.
+ *  - `loose`  : các miếng đã cắt rời. Luôn ở identity transform (= world space),
+ *               nên DragControls ở M3 hoạt động đúng.
+ */
 export class ChickenMesh {
-    constructor() {
-        this.group = new THREE.Group();
-        this.isFlipped = false;
-        this.boneShards = []; // To store instanced meshes or particles
+    constructor(anatomyData) {
+        this.anatomy = anatomyData;
 
-        
-        // Boiled chicken skin color
+        this.group = new THREE.Group();      // phần còn dính liền
+        this.loose = new THREE.Group();      // các miếng đã rời ra
+        this.isFlipped = false;
+        this.boneShards = [];
+
         this.skinMaterial = new THREE.MeshStandardMaterial({
-            color: 0xffd700, // Golden yellow
-            roughness: 0.3, // Slightly shiny (greasy)
-            metalness: 0.1
+            color: 0xffd700,
+            roughness: 0.35,
+            metalness: 0.05
         });
-        
-        // Meat material for cross sections
+
         this.meatMaterial = new THREE.MeshStandardMaterial({
-            color: 0xddcbb5, // White-ish meat
+            color: 0xddcbb5,
             roughness: 0.8,
             metalness: 0
         });
-        
+
         this.parts = {};
-        this.buildProceduralChicken();
+        this.buildFromAnatomy();
+        this.createJointMarker();
     }
-    
-    buildProceduralChicken() {
-        // This is a placeholder stylized chicken made of primitives
-        // Body (Lưng + Ức)
-        const bodyGeo = new THREE.CapsuleGeometry(2.5, 4, 16, 32);
-        const body = new THREE.Mesh(bodyGeo, this.skinMaterial);
-        body.rotation.x = Math.PI / 2;
-        body.position.set(0, 2.5, 0);
-        body.castShadow = true;
-        body.receiveShadow = true;
-        this.group.add(body);
-        this.parts['uc'] = body; // Simplified
-        
-        // Đùi góc tư trái
-        const thighGeo = new THREE.CapsuleGeometry(1.2, 2.5, 16, 16);
-        const thighLeft = new THREE.Mesh(thighGeo, this.skinMaterial);
-        thighLeft.rotation.z = -Math.PI / 6;
-        thighLeft.rotation.x = Math.PI / 4;
-        thighLeft.position.set(-2.5, 2, -2);
-        thighLeft.castShadow = true;
-        this.group.add(thighLeft);
-        this.parts['dui_goc_tu_trai'] = thighLeft;
-        
-        // Đùi góc tư phải
-        const thighRight = new THREE.Mesh(thighGeo, this.skinMaterial);
-        thighRight.rotation.z = Math.PI / 6;
-        thighRight.rotation.x = Math.PI / 4;
-        thighRight.position.set(2.5, 2, -2);
-        thighRight.castShadow = true;
-        this.group.add(thighRight);
-        this.parts['dui_goc_tu_phai'] = thighRight;
-        
-        // Cánh trái
-        const wingGeo = new THREE.CapsuleGeometry(0.8, 2, 16, 16);
-        const wingLeft = new THREE.Mesh(wingGeo, this.skinMaterial);
-        wingLeft.rotation.z = -Math.PI / 4;
-        wingLeft.position.set(-3, 3, 2);
-        wingLeft.castShadow = true;
-        this.group.add(wingLeft);
-        this.parts['canh_trai'] = wingLeft;
-        
-        // Cánh phải
-        const wingRight = new THREE.Mesh(wingGeo, this.skinMaterial);
-        wingRight.rotation.z = Math.PI / 4;
-        wingRight.position.set(3, 3, 2);
-        wingRight.castShadow = true;
-        this.group.add(wingRight);
-        this.parts['canh_phai'] = wingRight;
-        
-        // Cổ và đầu
-        const neckGeo = new THREE.CylinderGeometry(0.6, 0.8, 3, 16);
-        const neck = new THREE.Mesh(neckGeo, this.skinMaterial);
-        neck.rotation.x = Math.PI / 6;
-        neck.position.set(0, 4, 3.5);
-        neck.castShadow = true;
-        this.group.add(neck);
-        this.parts['co'] = neck;
-        
-        const headGeo = new THREE.SphereGeometry(1.2, 16, 16);
-        const head = new THREE.Mesh(headGeo, this.skinMaterial);
-        head.position.set(0, 5.5, 4.5);
-        head.castShadow = true;
-        this.group.add(head);
-        this.parts['dau'] = head;
-        
-        // Name all meshes for raycasting
-        this.group.traverse(child => {
-            if (child.isMesh) {
-                child.name = 'chicken_part';
-            }
-        });
-    }
-    
-    flip() {
-        this.isFlipped = !this.isFlipped;
-        // Animation could be added here
-        const targetRotation = this.isFlipped ? Math.PI : 0;
-        
-        // Simple instant flip for now
-        this.group.rotation.z = targetRotation;
-        
-        // Adjust Y position since center of mass might change
-        if (this.isFlipped) {
-            this.group.position.y = 5; // move up when upside down
-        } else {
-            this.group.position.y = 0;
+
+    buildGeometry(spec) {
+        const a = spec.args;
+        switch (spec.geo) {
+            case 'capsule':  return new THREE.CapsuleGeometry(a[0], a[1], 12, 24);
+            case 'sphere':   return new THREE.SphereGeometry(a[0], 24, 16);
+            case 'cylinder': return new THREE.CylinderGeometry(a[0], a[1], a[2], 20);
+            case 'box':      return new THREE.BoxGeometry(a[0], a[1], a[2]);
+            default:
+                console.warn('Không hiểu loại hình học:', spec.geo);
+                return new THREE.SphereGeometry(1, 8, 8);
         }
     }
-    
-    detachPart(partName) {
-        const part = this.parts[partName];
-        if (!part) return;
-        
-        // Hiệu ứng rơi đơn giản
-        // Nếu bộ phận vẫn là con của group chính, việc di chuyển vị trí local sẽ bị ảnh hưởng bởi phép lật con gà
-        // Lý tưởng là tách hẳn ra add vào scene, nhưng để đơn giản ta đổi vị trí local
-        part.position.y = (Math.random() * 0.5) - (this.isFlipped ? 5 : 0); // Drop to board level roughly
-        part.position.x += (Math.random() > 0.5 ? 1 : -1) * (0.5 + Math.random());
-        part.position.z += (Math.random() > 0.5 ? 1 : -1) * (0.5 + Math.random());
-        
-        part.rotation.z += Math.random() * Math.PI;
-        part.rotation.x += Math.random() * Math.PI;
+
+    buildFromAnatomy() {
+        for (const [partId, partData] of Object.entries(this.anatomy.parts)) {
+            const spec = partData.mesh;
+            if (!spec) {
+                console.warn(`Part "${partId}" không có định nghĩa mesh trong anatomy JSON`);
+                continue;
+            }
+
+            const mesh = new THREE.Mesh(this.buildGeometry(spec), this.skinMaterial.clone());
+            mesh.position.fromArray(spec.pos);
+            mesh.rotation.fromArray(spec.rot);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            mesh.name = 'chicken_part';
+            mesh.userData.partId = partId;
+            mesh.userData.label = partData.label || partId;
+
+            this.group.add(mesh);
+            this.parts[partId] = mesh;
+        }
     }
-    
-    createBoneShards(position) {
-        // Tạo vụn xương văng ra
-        const shardGeo = new THREE.TetrahedronGeometry(0.2);
-        const shardMat = new THREE.MeshBasicMaterial({ color: 0xaa0000 }); // Đỏ vụn xương/máu
-        
+
+    /** Vòng tròn đánh dấu khớp mục tiêu ở chế độ hướng dẫn. */
+    createJointMarker() {
+        const geo = new THREE.TorusGeometry(0.8, 0.09, 8, 32);
+        const mat = new THREE.MeshBasicMaterial({
+            color: 0x4caf50, transparent: true, opacity: 0.9, depthTest: false
+        });
+        this.jointMarker = new THREE.Mesh(geo, mat);
+        this.jointMarker.renderOrder = 999;
+        this.jointMarker.visible = false;
+        this.group.add(this.jointMarker); // con của group => lật theo con gà
+    }
+
+    /** @param {string|null} jointId  null = ẩn marker */
+    highlightJoint(jointId) {
+        const joint = jointId && this.anatomy.joints[jointId];
+        if (!joint) { this.jointMarker.visible = false; return; }
+
+        this.jointMarker.visible = true;
+        this.jointMarker.position.fromArray(joint.position);
+        // Xoay vòng tròn cho vuông góc với pháp tuyến lý tưởng của khớp
+        const n = new THREE.Vector3().fromArray(joint.normal).normalize();
+        this.jointMarker.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), n);
+    }
+
+    updateMarkerPulse(t) {
+        if (!this.jointMarker.visible) return;
+        const s = 1 + Math.sin(t * 0.005) * 0.12;
+        this.jointMarker.scale.set(s, s, 1);
+    }
+
+    flip() {
+        this.isFlipped = !this.isFlipped;
+        this.group.rotation.z = this.isFlipped ? Math.PI : 0;
+        this.group.position.y = this.isFlipped ? 9 : 0;
+        this.group.updateMatrixWorld(true);
+    }
+
+    /**
+     * Tách một miếng ra khỏi con gà.
+     * Dùng loose.attach() — Three.js giữ nguyên transform WORLD của miếng,
+     * nên miếng không nhảy chỗ và không còn bị ảnh hưởng bởi phép lật gà.
+     */
+    detachPart(partId) {
+        const part = this.parts[partId];
+        if (!part || part.parent === this.loose) return [];
+
+        const detached = [];
+        this.group.updateMatrixWorld(true);
+        this.loose.attach(part);
+        detached.push(partId);
+
+        // Rơi xuống mặt thớt, xoay một chút cho tự nhiên
+        const r = () => (Math.random() - 0.5);
+        part.position.y = 0.9 + Math.random() * 0.3;
+        part.position.x += r() * 2.0;
+        part.position.z += r() * 2.0;
+        part.rotation.z += r() * 0.8;
+        part.rotation.x += r() * 0.8;
+
+        // Các miếng đi kèm (ví dụ: cắt cổ thì đầu rời theo)
+        const alsoDetach = this.anatomy.parts[partId]?.detachWith || [];
+        for (const otherId of alsoDetach) {
+            detached.push(...this.detachPart(otherId));
+        }
+
+        return detached;
+    }
+
+    isDetached(partId) {
+        return this.parts[partId]?.parent === this.loose;
+    }
+
+    getLooseParts() {
+        return Object.entries(this.parts)
+            .filter(([id]) => this.isDetached(id))
+            .map(([, mesh]) => mesh);
+    }
+
+    /** @param {THREE.Vector3} worldPosition */
+    createBoneShards(worldPosition) {
+        const shardGeo = new THREE.TetrahedronGeometry(0.18);
+        const shardMat = new THREE.MeshStandardMaterial({ color: 0xf3ece0, roughness: 0.7 });
+
         for (let i = 0; i < 5; i++) {
             const shard = new THREE.Mesh(shardGeo, shardMat);
-            
-            // Randomize position near the cut point
-            shard.position.copy(position);
-            shard.position.x += (Math.random() - 0.5);
-            shard.position.y += Math.random();
-            shard.position.z += (Math.random() - 0.5);
-            
-            // Randomize rotation
+            shard.position.copy(worldPosition);
+            shard.position.x += (Math.random() - 0.5) * 1.5;
+            shard.position.y = 0.2 + Math.random() * 0.2;
+            shard.position.z += (Math.random() - 0.5) * 1.5;
             shard.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
-            
-            this.group.add(shard);
+            shard.castShadow = true;
+
+            this.loose.add(shard);   // vụn xương nằm trên thớt, không lật theo gà
             this.boneShards.push(shard);
         }
     }

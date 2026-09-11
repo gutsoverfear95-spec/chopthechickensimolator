@@ -118,9 +118,19 @@ header h1 {
     opacity: 1;
 }
 
+/* Ẩn THẬT: gỡ khỏi layout luôn.
+   Trước đây .hidden chỉ đặt opacity:0 nên phần tử vẫn chiếm chỗ và
+   con của nó (pointer-events:auto) vẫn nuốt chuột. Đó là lý do màn hình
+   "chết" sau khi sơ chế xong. */
 .hidden {
-    opacity: 0 !important;
-    pointer-events: none !important;
+    display: none !important;
+}
+
+/* #action-feedback cần mờ dần chứ không biến mất đột ngột, nên có luật riêng. */
+#action-feedback.hidden {
+    display: block !important;
+    opacity: 0;
+    pointer-events: none;
 }
 
 .feedback-good { color: #4caf50; }
@@ -347,4 +357,63 @@ header h1 {
 input[type=range] {
     width: 100%;
     margin-top: 10px;
+}
+
+/* ---------- Bổ sung: chỉ báo tiến độ 7 bước ---------- */
+#step-progress {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.step-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    transition: background 0.2s, transform 0.2s;
+}
+
+.step-dot.done {
+    background: #4caf50;
+    border-color: #4caf50;
+}
+
+.step-dot.active {
+    background: #ff9800;
+    border-color: #ffcc80;
+    transform: scale(1.3);
+}
+
+/* ---------- Bổ sung: chú giải sơ đồ nhát dao ---------- */
+.legend {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 8px;
+    font-size: 13px;
+    color: #d7c4b0;
+}
+
+.legend .dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.legend .dot.green  { background: #4caf50; }
+.legend .dot.yellow { background: #ffeb3b; }
+.legend .dot.red    { background: #f44336; }
+
+.analysis-diagram small {
+    font-weight: normal;
+    opacity: 0.65;
+}
+
+#chicken-2d-canvas {
+    max-width: 100%;
+    border-radius: 6px;
 }

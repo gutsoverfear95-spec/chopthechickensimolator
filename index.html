@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chặt Gà Sư Phụ - Simulator</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><text y=%2250%22 font-size=%2252%22>🔪</text></svg>">
     <link rel="stylesheet" href="css/style.css">
     
     <!-- Import map for Three.js -->
@@ -25,11 +26,13 @@
         
         <main id="hud">
             <!-- M2 UI -->
-            <div id="m2-ui">
+            <div id="m2-ui" class="hidden">
                 <div id="controls-hint">
-                    <p>🖱️ Chuột trái: Chọn / Rê dao</p>
-                    <p>🖱️ Giữ & Thả: Chặt</p>
-                    <p>🔄 Lăn chuột: Xoay góc dao</p>
+                    <p>🖱️ Rê chuột: Đưa dao trên thân gà</p>
+                    <p>🖱️ Giữ &amp; thả chuột trái: Lấy đà rồi bổ</p>
+                    <p>🔄 Lăn chuột: Xoay hướng lưỡi dao</p>
+                    <p>⌨️ Q / E: Nghiêng lưỡi dao — R: về vuông góc thớt</p>
+                    <p>🖱️ Kéo chuột phải: Xoay camera</p>
                 </div>
             </div>
             
@@ -45,12 +48,12 @@
                 </div>
             </div>
             
-            <div id="camera-controls">
+            <div id="camera-controls" class="hidden">
                 <button id="btn-cam-top">Góc Trên</button>
                 <button id="btn-cam-side">Góc Nghiêng 45°</button>
                 <button id="btn-cam-front">Góc Ngang</button>
                 <button id="btn-flip-chicken">Lật Gà ↺</button>
-                <button id="btn-switch-m3" class="btn-highlight">Chuyển sang Xếp Đĩa ➔</button>
+                <button id="btn-switch-m3" class="btn-highlight hidden">Chuyển sang Xếp Đĩa ➔</button>
             </div>
         </main>
         

@@ -1,55 +1,129 @@
 {
+  "_comment": "Nguồn sự thật duy nhất cho hình học con gà. chicken_mesh.js dựng mesh từ đây, scoring.js chấm điểm từ đây. Đừng hard-code toạ độ ở nơi khác. Quy ước: 1 đơn vị 3D = 10mm. Toạ độ là LOCAL trong chickenMesh.group (mặt thớt ở y=0 khi gà chưa lật).",
+  "unitMm": 10,
+  "searchRadius": 5.0,
+
   "parts": {
-    "dau": { "mass": 100, "bone": true },
-    "co": { "mass": 150, "bone": true },
-    "canh_trai": { "mass": 120, "bone": true },
-    "canh_phai": { "mass": 120, "bone": true },
-    "uc": { "mass": 400, "bone": false },
-    "lung": { "mass": 200, "bone": true },
-    "dui_goc_tu_trai": { "mass": 250, "bone": true },
-    "dui_goc_tu_phai": { "mass": 250, "bone": true },
-    "phao_cau": { "mass": 30, "bone": false }
+    "lung": {
+      "label": "Lưng",
+      "mass": 220,
+      "bone": true,
+      "mesh": { "geo": "capsule", "args": [2.2, 3.6], "pos": [0, 2.3, -0.3], "rot": [1.5708, 0, 0] }
+    },
+    "uc": {
+      "label": "Ức / Lườn",
+      "mass": 400,
+      "bone": false,
+      "mesh": { "geo": "capsule", "args": [1.8, 2.8], "pos": [0, 4.0, 0.4], "rot": [1.5708, 0, 0] }
+    },
+    "co": {
+      "label": "Cổ",
+      "mass": 150,
+      "bone": true,
+      "detachWith": ["dau"],
+      "mesh": { "geo": "cylinder", "args": [0.55, 0.85, 3.0], "pos": [0, 5.8, 2.9], "rot": [0.628, 0, 0] }
+    },
+    "dau": {
+      "label": "Đầu",
+      "mass": 100,
+      "bone": true,
+      "mesh": { "geo": "sphere", "args": [1.1], "pos": [0, 7.0, 3.75], "rot": [0, 0, 0] }
+    },
+    "canh_trai": {
+      "label": "Cánh trái",
+      "mass": 120,
+      "bone": true,
+      "mesh": { "geo": "capsule", "args": [0.75, 2.0], "pos": [-2.6, 3.8, 0.8], "rot": [0, 0, 0.785] }
+    },
+    "canh_phai": {
+      "label": "Cánh phải",
+      "mass": 120,
+      "bone": true,
+      "mesh": { "geo": "capsule", "args": [0.75, 2.0], "pos": [2.6, 3.8, 0.8], "rot": [0, 0, -0.785] }
+    },
+    "dui_goc_tu_trai": {
+      "label": "Đùi góc tư trái",
+      "mass": 250,
+      "bone": true,
+      "mesh": { "geo": "capsule", "args": [1.1, 2.2], "pos": [-2.4, 2.2, -1.6], "rot": [0.785, 0, 0.5] }
+    },
+    "dui_goc_tu_phai": {
+      "label": "Đùi góc tư phải",
+      "mass": 250,
+      "bone": true,
+      "mesh": { "geo": "capsule", "args": [1.1, 2.2], "pos": [2.4, 2.2, -1.6], "rot": [0.785, 0, -0.5] }
+    },
+    "phao_cau": {
+      "label": "Phao câu",
+      "mass": 30,
+      "bone": false,
+      "mesh": { "geo": "sphere", "args": [0.7], "pos": [0, 2.6, -2.6], "rot": [0, 0, 0] }
+    }
   },
+
   "joints": {
     "khop_co": {
-      "partA": "dau",
+      "label": "Khớp cổ",
+      "partA": "uc",
       "partB": "co",
-      "position": [0, 4, -4],
-      "normal": [0, 1, -1],
-      "tolerance": 5,
+      "position": [0, 4.8, 2.2],
+      "normal": [0, 0, 1],
+      "tolerance": 6,
       "difficulty": 1
     },
     "khop_vai_trai": {
+      "label": "Khớp vai trái",
       "partA": "uc",
       "partB": "canh_trai",
-      "position": [-3, 3, 2],
+      "position": [-1.9, 3.9, 0.85],
       "normal": [1, 0, 0],
       "tolerance": 6,
       "difficulty": 2
     },
     "khop_vai_phai": {
+      "label": "Khớp vai phải",
       "partA": "uc",
       "partB": "canh_phai",
-      "position": [3, 3, 2],
-      "normal": [-1, 0, 0],
+      "position": [1.9, 3.9, 0.85],
+      "normal": [1, 0, 0],
       "tolerance": 6,
       "difficulty": 2
     },
     "khop_hang_trai": {
+      "label": "Khớp háng trái",
       "partA": "lung",
       "partB": "dui_goc_tu_trai",
-      "position": [-3, 1, -2],
-      "normal": [1, 0.5, 0],
-      "tolerance": 5,
+      "position": [-1.9, 2.3, -1.5],
+      "normal": [1, 0, 0],
+      "tolerance": 6,
       "difficulty": 3
     },
     "khop_hang_phai": {
+      "label": "Khớp háng phải",
       "partA": "lung",
       "partB": "dui_goc_tu_phai",
-      "position": [3, 1, -2],
-      "normal": [-1, 0.5, 0],
-      "tolerance": 5,
+      "position": [1.9, 2.3, -1.5],
+      "normal": [1, 0, 0],
+      "tolerance": 6,
       "difficulty": 3
+    },
+    "khop_uc_lung": {
+      "label": "Đường xương sườn",
+      "partA": "lung",
+      "partB": "uc",
+      "position": [-1.35, 3.3, 0.2],
+      "normal": [1, 0, 0],
+      "tolerance": 6,
+      "difficulty": 4
+    },
+    "khop_phao_cau": {
+      "label": "Phao câu",
+      "partA": "lung",
+      "partB": "phao_cau",
+      "position": [0, 2.5, -2.15],
+      "normal": [0, 0, 1],
+      "tolerance": 5,
+      "difficulty": 2
     }
   }
 }

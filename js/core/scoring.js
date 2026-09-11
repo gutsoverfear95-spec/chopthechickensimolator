@@ -1,109 +1,131 @@
 import * as THREE from 'three';
-import { appState } from './state.js';
 
+/**
+ * Chấm điểm nhát dao.
+ *
+ * Nguyên tắc: một nhát dao không phải là một ĐIỂM, nó là một MẶT PHẲNG.
+ * Cái quan trọng là khớp nằm cách mặt phẳng cắt bao xa (khoảng cách vuông góc),
+ * chứ không phải cách điểm chạm dao bao xa. Nhờ vậy việc dao chạm vào mặt ngoài
+ * của miếng thịt (thay vì tâm khớp) không hề bị tính là sai số — đúng như thật.
+ */
 export class ScoringSystem {
     constructor(anatomyData) {
         this.anatomy = anatomyData;
+        this.unitMm = anatomyData.unitMm || 10;
+        this.searchRadius = anatomyData.searchRadius || 3.5;
     }
 
     /**
-     * Đánh giá nhát chém
-     * @param {THREE.Vector3} cutPoint Tọa độ dao chạm thớt/gà
-     * @param {number} knifeAngle Góc xoay dao (Radian)
-     * @param {number} force Lực băm (0.0 -> 1.0)
+     * Pháp tuyến của mặt phẳng cắt.
+     * Lưỡi dao dài theo trục Z local. yaw xoay quanh Y, pitch nghiêng lưỡi
+     * quanh chính trục lưỡi dao (tức là làm dao không còn vuông góc thớt).
      */
-    evaluateCut(cutPoint, knifeAngle, force) {
-        // Calculate the normal of the cutting plane based on knifeAngle
-        // Knife is rotated around Y axis. At angle 0, the blade aligns with Z axis.
-        // So the normal to the blade is along the X axis, rotated by knifeAngle.
-        const cutNormal = new THREE.Vector3(Math.cos(knifeAngle), 0, -Math.sin(knifeAngle));
-        
-        // Find the nearest joint
-        let nearestJoint = null;
-        let minDistance = Infinity;
-        
-        for (const [jointId, jointData] of Object.entries(this.anatomy.joints)) {
-            // Check if parts are already detached
-            if (appState.isPartDetached(jointData.partA) && appState.isPartDetached(jointData.partB)) {
-                continue; // Joint no longer valid
-            }
-            
-            const jointPos = new THREE.Vector3().fromArray(jointData.position);
-            const distance = cutPoint.distanceTo(jointPos);
-            
-            if (distance < minDistance) {
-                minDistance = distance;
-                nearestJoint = { id: jointId, data: jointData };
+    static cutNormal(yaw, pitch) {
+        return new THREE.Vector3(
+            Math.cos(yaw) * Math.cos(pitch),
+            Math.sin(pitch),
+            -Math.sin(yaw) * Math.cos(pitch)
+        ).normalize();
+    }
+
+    /**
+     * @param {THREE.Vector3} cutPoint  Điểm dao chạm gà, trong LOCAL space của chickenMesh.group
+     * @param {number} yaw    Góc xoay dao quanh trục đứng (radian)
+     * @param {number} pitch  Góc nghiêng lưỡi dao so với phương thẳng đứng (radian)
+     * @param {number} force  Lực băm 0..1
+     * @param {(partId:string)=>boolean} isDetached
+     * @param {(jointId:string)=>boolean} isAvailable  Khớp đã mở khoá theo trình tự chưa
+     */
+    evaluateCut(cutPoint, yaw, pitch, force, isDetached, isAvailable = () => true) {
+        const cutNormal = ScoringSystem.cutNormal(yaw, pitch);
+
+        let nearest = null;
+        let bestRank = Infinity;
+
+        for (const [jointId, joint] of Object.entries(this.anatomy.joints)) {
+            // Khớp đã bị cắt rời thì không còn để cắt nữa
+            if (isDetached(joint.partB)) continue;
+            // Chưa tới lượt trong trình tự pha lóc thì cũng chưa được cắt
+            if (!isAvailable(jointId)) continue;
+
+            const jointPos = new THREE.Vector3().fromArray(joint.position);
+            const pointDist = cutPoint.distanceTo(jointPos);
+
+            // Mặt phẳng là vô hạn — phải có rào: dao phải ở gần khớp mới tính
+            if (pointDist > this.searchRadius) continue;
+
+            // Khoảng cách vuông góc từ khớp tới mặt phẳng cắt
+            const planeDist = Math.abs(jointPos.clone().sub(cutPoint).dot(cutNormal));
+
+            // Ưu tiên mặt phẳng gần, nhưng dùng khoảng cách điểm để phá thế hoà
+            const rank = planeDist + pointDist * 0.25;
+
+            if (rank < bestRank) {
+                bestRank = rank;
+                nearest = { id: jointId, data: joint, planeDist, pointDist };
             }
         }
-        
-        if (!nearestJoint) {
-            return { type: 'invalid', message: 'Không tìm thấy khớp để cắt!', score: 0 };
+
+        if (!nearest) {
+            return {
+                type: 'Chém trượt', success: false, score: -15,
+                message: 'Chỗ này không có khớp nào. Rê dao tìm khe khớp trước đã!',
+                distanceMm: null, angleDiffDeg: null, force,
+                jointId: null, partA: null, partB: null,
+                position: cutPoint.toArray()
+            };
         }
-        
-        // Cố định các mức tính điểm (Tolerance)
-        // distance: mm (trong môi trường 3D giả định 1 đơn vị = 10mm, minDistance hiện tại tính theo đơn vị 3D)
-        // Nên nhân distance * 10 để ra số mm
-        const distanceMm = minDistance * 10;
-        
-        // Góc lệch
-        const targetNormal = new THREE.Vector3().fromArray(nearestJoint.data.normal).normalize();
+
+        const distanceMm = nearest.planeDist * this.unitMm;
+
+        // Góc lệch giữa mặt phẳng cắt và mặt phẳng lý tưởng của khớp
+        const targetNormal = new THREE.Vector3().fromArray(nearest.data.normal).normalize();
         let angleDiff = cutNormal.angleTo(targetNormal);
-        // Angle diff can be supplementary because plane normal can point either way
-        if (angleDiff > Math.PI / 2) {
-            angleDiff = Math.PI - angleDiff;
-        }
+        if (angleDiff > Math.PI / 2) angleDiff = Math.PI - angleDiff; // pháp tuyến quay hướng nào cũng được
         const angleDiffDeg = THREE.MathUtils.radToDeg(angleDiff);
-        
-        // Đánh giá
-        let resultType = '';
-        let message = '';
-        let score = 0;
-        let success = false;
-        
+
+        let type, message, score, success = false;
+
         if (force < 0.2) {
-            resultType = 'Nhát non';
-            message = 'Lực quá yếu, dao bị kẹt!';
+            type = 'Nhát non';
+            message = 'Lực quá yếu, dao mắc kẹt trong thịt. Phải dứt khoát!';
             score = -10;
         } else if (force > 0.9) {
-            resultType = 'Nhát tham';
-            message = 'Lực quá mạnh, nát da gà!';
+            type = 'Nhát tham';
+            message = 'Lực quá mạnh, miếng bắn ra và nát da gà.';
             score = -10;
             success = true;
         } else if (distanceMm > 15) {
-            resultType = 'Phạm xương';
-            message = `Chém trượt khớp hoàn toàn! Lệch ${distanceMm.toFixed(1)}mm`;
+            type = 'Phạm xương';
+            message = `Chém thẳng vào thân xương, sinh vụn xương dăm! Lệch ${distanceMm.toFixed(1)}mm`;
             score = -30;
-        } else if (distanceMm > nearestJoint.data.tolerance) {
-            resultType = 'Sượt khớp';
-            message = `Chém sát khớp nhưng bị sứt. Lệch ${distanceMm.toFixed(1)}mm`;
+        } else if (distanceMm > nearest.data.tolerance) {
+            type = 'Sượt khớp';
+            message = `Sát khớp nhưng còn sót thịt trên xương. Lệch ${distanceMm.toFixed(1)}mm`;
             score = 10;
             success = true;
         } else if (angleDiffDeg > 15) {
-            resultType = 'Sượt khớp';
-            message = `Đúng vị trí nhưng sai góc dao! Lệch ${angleDiffDeg.toFixed(1)}°`;
+            type = 'Sượt khớp';
+            message = `Đúng vị trí nhưng dao không vuông góc thớt! Nghiêng ${angleDiffDeg.toFixed(1)}°`;
             score = 20;
             success = true;
         } else {
-            resultType = 'Ngọt khớp';
-            message = 'Tuyệt vời! Chém chính xác vào sụn khớp.';
+            type = 'Ngọt khớp';
+            message = 'Tuyệt vời! Ngọt lịm vào đúng sụn khớp.';
             score = 50;
             success = true;
         }
-        
-        const result = {
-            type: resultType,
-            message: message,
-            score: score,
-            distanceMm: distanceMm,
-            angleDiffDeg: angleDiffDeg,
-            force: force,
-            jointId: nearestJoint.id,
-            partA: nearestJoint.data.partA,
-            partB: nearestJoint.data.partB,
-            success: success
+
+        return {
+            type, message, score, success,
+            distanceMm,
+            angleDiffDeg,
+            force,
+            jointId: nearest.id,
+            jointLabel: nearest.data.label || nearest.id,
+            partA: nearest.data.partA,
+            partB: nearest.data.partB,
+            position: cutPoint.toArray()
         };
-        
-        return result;
     }
 }

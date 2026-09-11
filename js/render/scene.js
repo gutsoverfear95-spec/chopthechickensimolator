@@ -27,11 +27,19 @@ export class SceneManager {
         this.controls.dampingFactor = 0.05;
         this.controls.maxPolarAngle = Math.PI / 2 - 0.1; // Don't go below ground
         
+        this.shakeIntensity = 0;
+        this.shakeOffset = new THREE.Vector3();
+
         this.setupLighting();
         this.setupEnvironment();
-        
+
         // Resize handler
         window.addEventListener('resize', this.onWindowResize.bind(this));
+    }
+
+    /** Rung camera. Được cộng SAU controls.update() nên không bị OrbitControls ghi đè. */
+    shake(intensity) {
+        this.shakeIntensity = Math.max(this.shakeIntensity, intensity);
     }
     
     setupLighting() {
@@ -70,6 +78,7 @@ export class SceneManager {
             metalness: 0.1
         });
         this.board = new THREE.Mesh(boardGeometry, boardMaterial);
+        this.board.name = 'board';
         this.board.position.y = -1; // Top surface at y=0
         this.board.receiveShadow = true;
         this.scene.add(this.board);
@@ -138,6 +147,21 @@ export class SceneManager {
     
     render() {
         this.controls.update();
+
+        if (this.shakeIntensity > 0.001) {
+            this.shakeOffset.set(
+                (Math.random() - 0.5) * this.shakeIntensity,
+                (Math.random() - 0.5) * this.shakeIntensity,
+                (Math.random() - 0.5) * this.shakeIntensity
+            );
+            this.shakeIntensity *= 0.82;
+            this.camera.position.add(this.shakeOffset);
+            this.renderer.render(this.scene, this.camera);
+            this.camera.position.sub(this.shakeOffset); // trả lại ngay, không tích luỹ trôi
+            return;
+        }
+
+        this.shakeIntensity = 0;
         this.renderer.render(this.scene, this.camera);
     }
 }

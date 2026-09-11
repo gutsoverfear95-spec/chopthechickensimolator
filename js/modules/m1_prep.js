@@ -71,14 +71,15 @@ export class M1PrepModule {
         }
         
         if (iceBath) prepScore += 20;
-        
-        // Add to main score
-        appState.updatePlatingScore(prepScore); // Reusing method to add score safely
-        
-        // Hide M1
-        document.getElementById('m1-ui').classList.add('hidden');
-        
-        // Start M2
+
+        appState.addScore(prepScore);
+
+        // GỠ HẲN overlay khỏi DOM.
+        // classList.add('hidden') là không đủ: lớp .hidden trước đây chỉ đặt opacity:0,
+        // nên tấm overlay vẫn phủ kín màn hình và .prep-container (pointer-events:auto)
+        // nuốt toàn bộ chuột ngay giữa màn hình — đúng chỗ con gà nằm.
+        document.getElementById('m1-ui')?.remove();
+
         appState.changePhase('m2_chop');
     }
 }
