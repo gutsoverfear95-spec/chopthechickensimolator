@@ -45,6 +45,9 @@ class App {
             if (state.currentPhase === 'm2_chop') {
                 document.getElementById('m2-ui').classList.remove('hidden');
                 document.getElementById('btn-switch-m3').classList.remove('hidden');
+                if (this.knifeControl && this.knifeControl.knifeGroup) {
+                    this.knifeControl.knifeGroup.visible = true;
+                }
             }
         });
         
