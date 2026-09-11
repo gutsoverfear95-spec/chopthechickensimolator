@@ -1,0 +1,349 @@
+:root {
+    --primary-bg: #1a1a1a;
+    --text-color: #f5f5f5;
+    --accent: #d32f2f;
+    --accent-hover: #b71c1c;
+    --overlay-bg: rgba(0, 0, 0, 0.6);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body, html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--primary-bg);
+    color: var(--text-color);
+}
+
+#canvas-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1; /* Below UI */
+}
+
+#ui-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    pointer-events: none; /* Let clicks pass through to canvas */
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    background: var(--overlay-bg);
+    padding: 15px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--accent);
+    pointer-events: auto;
+}
+
+header h1 {
+    font-size: 24px;
+    margin: 0;
+}
+
+#score-board {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+#hud {
+    flex: 1;
+    position: relative;
+}
+
+#controls-hint {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: var(--overlay-bg);
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+#camera-controls {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 15px;
+    pointer-events: auto;
+}
+
+#camera-controls button {
+    background-color: var(--accent);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-weight: bold;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+#camera-controls button:hover {
+    background-color: var(--accent-hover);
+}
+
+#action-feedback {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 32px;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    pointer-events: none;
+    transition: opacity 0.5s;
+    opacity: 1;
+}
+
+.hidden {
+    opacity: 0 !important;
+}
+
+.feedback-good { color: #4caf50; }
+.feedback-ok { color: #ffeb3b; }
+.feedback-bad { color: #f44336; }
+
+#tutorial-box {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(43, 20, 10, 0.9);
+    border: 2px solid #ff9800;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 300px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    pointer-events: auto;
+}
+
+#tutorial-box h3 {
+    color: #ff9800;
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+#tutorial-text {
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+@keyframes blink-text {
+    0% { opacity: 1; color: #fff; }
+    50% { opacity: 0.5; color: #ff9800; }
+    100% { opacity: 1; color: #fff; }
+}
+
+.blink {
+    animation: blink-text 2s ease-in-out infinite;
+}
+
+/* Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.modal-content {
+    background: #2b140a;
+    border: 2px solid #ff9800;
+    border-radius: 8px;
+    padding: 30px;
+    max-width: 600px;
+    width: 90%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    color: #fff;
+    pointer-events: auto;
+}
+
+.modal-content h2 {
+    color: #ff9800;
+    text-align: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #552814;
+    padding-bottom: 10px;
+}
+
+.analysis-stats {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+.stat-box {
+    background: #1a0c06;
+    padding: 15px;
+    border-radius: 6px;
+    text-align: center;
+    min-width: 120px;
+}
+
+.stat-label {
+    display: block;
+    font-size: 14px;
+    color: #bbb;
+    margin-bottom: 5px;
+}
+
+.stat-value {
+    display: block;
+    font-size: 24px;
+    font-weight: bold;
+    color: #4caf50;
+}
+
+.analysis-diagram {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.analysis-advice ul {
+    list-style-type: disc;
+    padding-left: 20px;
+    line-height: 1.6;
+}
+
+.btn-primary {
+    background-color: #ff9800;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    display: block;
+    margin: 20px auto 0;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: #f57c00;
+}
+
+.btn-highlight {
+    background-color: #4caf50 !important;
+}
+
+.btn-highlight:hover {
+    background-color: #388e3c !important;
+}
+
+.m3-actions {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 15px;
+    pointer-events: auto;
+}
+
+.m3-actions button {
+    background-color: #1565c0;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* M1 Prep UI */
+.fullscreen-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><rect width="100%" height="100%" fill="%231a1a1a"/></svg>') center/cover; /* Fallback */
+    background-color: #1a0f0a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 200;
+}
+
+.prep-container {
+    background: rgba(43, 20, 10, 0.95);
+    border: 2px solid #ff9800;
+    border-radius: 8px;
+    padding: 40px;
+    max-width: 600px;
+    width: 90%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    pointer-events: auto;
+}
+
+.prep-container h1 {
+    color: #ff9800;
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 32px;
+}
+
+.profile-info {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #552814;
+    color: #bbb;
+}
+
+.step-card {
+    background: #1a0c06;
+    padding: 20px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+}
+
+.step-card h3 {
+    color: #ffb74d;
+    margin-bottom: 10px;
+}
+
+.options label, .step-card label {
+    display: block;
+    margin: 8px 0;
+    cursor: pointer;
+}
+
+.slider-container {
+    margin-top: 15px;
+}
+
+input[type=range] {
+    width: 100%;
+    margin-top: 10px;
+}

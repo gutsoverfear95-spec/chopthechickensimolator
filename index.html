@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chặt Gà Sư Phụ - Simulator</title>
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Import map for Three.js -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+</head>
+<body>
+    <div id="ui-layer">
+        <header>
+            <h1>Chặt Gà Sư Phụ</h1>
+            <div id="score-board">Điểm: <span id="total-score">0</span> / 1000</div>
+        </header>
+        
+        <main id="hud">
+            <!-- M2 UI -->
+            <div id="m2-ui">
+                <div id="controls-hint">
+                    <p>🖱️ Chuột trái: Chọn / Rê dao</p>
+                    <p>🖱️ Giữ & Thả: Chặt</p>
+                    <p>🔄 Lăn chuột: Xoay góc dao</p>
+                </div>
+            </div>
+            
+            <!-- M3 UI (Hidden initially) -->
+            <div id="m3-ui" class="hidden">
+                <div id="plating-hint">
+                    <p>🖱️ Kéo thả: Di chuyển miếng gà lên đĩa</p>
+                    <p>🔄 Lăn chuột: Xoay miếng thịt</p>
+                </div>
+                <div class="m3-actions">
+                    <button id="btn-compare">So Với Mẫu</button>
+                    <button id="btn-finish">Hoàn Thành & Tổng Kết</button>
+                </div>
+            </div>
+            
+            <div id="camera-controls">
+                <button id="btn-cam-top">Góc Trên</button>
+                <button id="btn-cam-side">Góc Nghiêng 45°</button>
+                <button id="btn-cam-front">Góc Ngang</button>
+                <button id="btn-flip-chicken">Lật Gà ↺</button>
+                <button id="btn-switch-m3" class="btn-highlight">Chuyển sang Xếp Đĩa ➔</button>
+            </div>
+        </main>
+        
+        <!-- Feedback overlay when chopping -->
+        <div id="action-feedback" class="hidden"></div>
+    </div>
+    
+    <!-- 3D Canvas Container -->
+    <div id="canvas-container"></div>
+    
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>

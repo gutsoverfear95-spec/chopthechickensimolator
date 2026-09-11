@@ -1,0 +1,55 @@
+{
+  "parts": {
+    "dau": { "mass": 100, "bone": true },
+    "co": { "mass": 150, "bone": true },
+    "canh_trai": { "mass": 120, "bone": true },
+    "canh_phai": { "mass": 120, "bone": true },
+    "uc": { "mass": 400, "bone": false },
+    "lung": { "mass": 200, "bone": true },
+    "dui_goc_tu_trai": { "mass": 250, "bone": true },
+    "dui_goc_tu_phai": { "mass": 250, "bone": true },
+    "phao_cau": { "mass": 30, "bone": false }
+  },
+  "joints": {
+    "khop_co": {
+      "partA": "dau",
+      "partB": "co",
+      "position": [0, 4, -4],
+      "normal": [0, 1, -1],
+      "tolerance": 5,
+      "difficulty": 1
+    },
+    "khop_vai_trai": {
+      "partA": "uc",
+      "partB": "canh_trai",
+      "position": [-3, 3, 2],
+      "normal": [1, 0, 0],
+      "tolerance": 6,
+      "difficulty": 2
+    },
+    "khop_vai_phai": {
+      "partA": "uc",
+      "partB": "canh_phai",
+      "position": [3, 3, 2],
+      "normal": [-1, 0, 0],
+      "tolerance": 6,
+      "difficulty": 2
+    },
+    "khop_hang_trai": {
+      "partA": "lung",
+      "partB": "dui_goc_tu_trai",
+      "position": [-3, 1, -2],
+      "normal": [1, 0.5, 0],
+      "tolerance": 5,
+      "difficulty": 3
+    },
+    "khop_hang_phai": {
+      "partA": "lung",
+      "partB": "dui_goc_tu_phai",
+      "position": [3, 1, -2],
+      "normal": [-1, 0.5, 0],
+      "tolerance": 5,
+      "difficulty": 3
+    }
+  }
+}
