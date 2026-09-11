@@ -120,6 +120,7 @@ header h1 {
 
 .hidden {
     opacity: 0 !important;
+    pointer-events: none !important;
 }
 
 .feedback-good { color: #4caf50; }
